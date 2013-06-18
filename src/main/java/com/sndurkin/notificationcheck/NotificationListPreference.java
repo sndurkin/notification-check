@@ -6,11 +6,9 @@ import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
-import android.os.Debug;
 import android.preference.DialogPreference;
 import android.preference.PreferenceManager;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -30,9 +28,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * Created by Sean on 6/12/13.
- */
+// This is a custom multi-select ListPreference (which extends DialogPreference because it
+// implements its own list view) which displays all installed applications along with
+// their icons.
 public class NotificationListPreference extends DialogPreference {
 
     private static Map<String, Drawable> CACHED_APP_ICONS = new HashMap<String, Drawable>();
@@ -40,13 +38,10 @@ public class NotificationListPreference extends DialogPreference {
     private static final String SEPARATOR = "|";
     private static final String SEPARATOR_REGEX = "\\|";
 
-    private List<String> appPackageNames = new ArrayList<String>();
-
+    private String value;
     private CharSequence[] entries;
     private CharSequence[] entryValues;
-    private String value;
-    private String summary;
-    private boolean [] selectedIndices;
+    private boolean[] selectedIndices;
 
     public NotificationListPreference(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -133,7 +128,6 @@ public class NotificationListPreference extends DialogPreference {
             appNames.add(app.name);
             appPackageNames.add(app.packageName);
         }
-        this.appPackageNames = appPackageNames;
 
         entries = appNames.toArray(new String[0]);
         entryValues = appPackageNames.toArray(new String[0]);
@@ -157,24 +151,16 @@ public class NotificationListPreference extends DialogPreference {
         }
     }
 
-    // Returns the TODO
-    public static List<String> extractListFromPref(String prefVal) {
-        if(prefVal.equals("")) {
+    public static List<String> extractListFromPref(String value) {
+        if(value == null || value.equals("")) {
             return new ArrayList<String>();
         }
-        else {
-            return Arrays.asList(prefVal.split(SEPARATOR_REGEX));
-        }
+        return Arrays.asList(value.split(SEPARATOR_REGEX));
     }
 
     // Extracts the serialized string saved in SharedPreferences.
     private List<String> fetchList() {
-        if(value == null) {
-            value = "";
-        }
-
-        Log.d("NotificationCheck", "Extracting list from pref: " + value);
-        return extractListFromPref(value.toString());
+        return extractListFromPref(value);
     }
 
     // Joins the string and stores the serialized value in SharedPreferences.
@@ -187,9 +173,7 @@ public class NotificationListPreference extends DialogPreference {
         while(iter.hasNext()) {
             sb.append(SEPARATOR).append(iter.next());
         }
-        value = sb.toString();
-        Log.d("NotificationCheck", "Saving list to pref: " + value);
-        persistString(value);
+        persistString(value = sb.toString());
         updateSummary();
     }
 
@@ -273,21 +257,19 @@ public class NotificationListPreference extends DialogPreference {
 
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
-            CustomHolder holder = null;
-
             convertView = inflater.inflate(R.layout.list_preference_row, parent, false);
-            holder = new CustomHolder(convertView, position);
+            CustomRow holder = new CustomRow(convertView, position);
             convertView.setTag(holder);
 
             return convertView;
         }
 
-        class CustomHolder {
+        class CustomRow {
             private ImageView iconView = null;
             private TextView textView = null;
             private CheckBox checkbox = null;
 
-            CustomHolder(final View row, final int position) {
+            CustomRow(final View row, final int position) {
                 row.setClickable(true);
                 row.setOnClickListener(new View.OnClickListener() {
                     public void onClick(View v) {
@@ -321,7 +303,6 @@ public class NotificationListPreference extends DialogPreference {
                 iconView.setScaleType(ImageView.ScaleType.CENTER_INSIDE);
 
                 checkbox = (CheckBox) row.findViewById(R.id.row_check);
-                // TODO: (remove this) checkbox.setId(position);
                 checkbox.setClickable(true);
                 checkbox.setOnClickListener(new View.OnClickListener() {
                     public void onClick(View v) {

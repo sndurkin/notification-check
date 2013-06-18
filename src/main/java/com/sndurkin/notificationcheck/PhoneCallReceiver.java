@@ -6,9 +6,7 @@ import android.content.Intent;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 
-/**
- * Created by Sean on 6/15/13.
- */
+// This is used solely to start the PhoneCallListener.
 public class PhoneCallReceiver extends BroadcastReceiver {
 
     @Override
