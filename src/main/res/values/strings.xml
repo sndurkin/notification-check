@@ -46,7 +46,7 @@
     <string name="pref_help_summary">Instructions for how to use this application</string>
 
     <string name="help_dialog_title">Notification Check Help</string>
-    <string name="help_dialog_message">When the phone\'s ringer is set to silent and the screen is turned on, the phone will vibrate if there are any notifications.\n\nUse these settings to customize this application\'s behavior.</string>
+    <string name="help_dialog_message">When the phone\'s ringer is set to silent and the screen is off, if the phone receives any notifications it will vibrate when you turn the screen back on.\n\nUse these settings to customize this application\'s behavior.</string>
     <string name="ok">OK</string>
 
 </resources>

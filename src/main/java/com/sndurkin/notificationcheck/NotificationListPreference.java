@@ -294,7 +294,7 @@ public class NotificationListPreference extends DialogPreference {
                         icon = pm.getApplicationIcon(entryValues[position].toString());
                     }
                     catch(PackageManager.NameNotFoundException e) {
-                        icon = getContext().getResources().getDrawable(R.drawable.ic_launcher);
+                        icon = pm.getDefaultActivityIcon();
                     }
 
                     CACHED_APP_ICONS.put(packageName, icon);
