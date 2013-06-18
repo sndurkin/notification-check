@@ -49,4 +49,6 @@
     <string name="help_dialog_message">When the phone\'s ringer is set to silent and the screen is off, if the phone receives any notifications it will vibrate when you turn the screen back on.\n\nUse these settings to customize this application\'s behavior.</string>
     <string name="ok">OK</string>
 
+    <string name="notification_service_description">This accessibility service allows the Notification Check application to listen for notifications posted by other applications.</string>
+
 </resources>
