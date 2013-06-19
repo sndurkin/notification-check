@@ -54,8 +54,8 @@ public class ScreenOnReceiver extends BroadcastReceiver {
             }
 
             AudioManager am = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
-            if(am.getRingerMode() != AudioManager.RINGER_MODE_SILENT) {
-                // This application is only active when the ringer is set to silent.
+            if(am.getRingerMode() == AudioManager.RINGER_MODE_NORMAL) {
+                // This application is only active when the ringer is set to silent or vibrate.
                 clearNotificationEvents();
                 return;
             }
@@ -64,7 +64,7 @@ public class ScreenOnReceiver extends BroadcastReceiver {
             if(phoneCallListener.isPhoneRinging()) {
                 // If the screen is turned on because the phone is ringing,
                 // the user probably isn't aware of it because the ringer
-                // is set to silent, so we defer vibration to the next time
+                // isn't on, so we defer vibration to the next time
                 // the screen is turned on (unless the call is answered).
                 phoneCallListener.addObserver(new PhoneCallListener.Observer() {
                     @Override
