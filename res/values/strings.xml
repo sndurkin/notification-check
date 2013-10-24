@@ -5,20 +5,7 @@
     <string name="notification_service_name">Notification Check</string>
 
     <string name="pref_active_title">Active</string>
-    <string name="pref_active_summary">Whether or not this application is active</string>
-
-    <!--
-    <string name="pref_when_title">When to check</string>
-    <string-array name="pref_when_displays">
-        <item>When phone is set to silent</item>
-        <item>Always</item>
-    </string-array>
-    <string-array name="pref_when_values">
-        <item>0</item>
-        <item>1</item>
-        <item>2</item>
-    </string-array>
-    -->
+    <string name="pref_active_summary">Whether or not this app is active</string>
 
     <string name="pref_what_title">What to check</string>
     <string-array name="pref_what_displays">
@@ -38,17 +25,22 @@
     <string name="pref_notifications_summary_pattern">%1$d selected</string>
 
     <string name="accessibility_alert_title">Notification Check Service</string>
-    <string name="accessibility_alert_message">Accessibility must be enabled and the Notification Check accessibility service must be enabled for the application to be active.\n\nOpen the Accessibility settings?</string>
+    <string name="accessibility_alert_message">Accessibility must be enabled and the Notification Check accessibility service must be enabled for the app to be active.\n\nOpen the Accessibility settings?</string>
+
+    <string name="notification_listener_alert_title">Notification Check Service</string>
+    <string name="notification_listener_alert_message">The Notification Check listener service must be enabled for the app to be active.\n\nOpen the notification listener settings?</string>
+
     <string name="yes">Yes</string>
     <string name="no">No</string>
 
     <string name="pref_help_title">Help</string>
-    <string name="pref_help_summary">Instructions for how to use this application</string>
+    <string name="pref_help_summary">Instructions for how to use this app</string>
 
     <string name="help_dialog_title">Notification Check Help</string>
-    <string name="help_dialog_message">When the phone\'s ringer is set to silent/vibrate and the screen is off, if the phone receives any notifications it will vibrate when you turn the screen back on.\n\nUse these settings to customize this application\'s behavior.</string>
+    <string name="help_dialog_message">When the phone\'s ringer is set to silent/vibrate and the screen is off, if the phone receives any notifications it will vibrate when you turn the screen back on.\n\nUse these settings to customize this app\'s behavior.</string>
     <string name="ok">OK</string>
 
-    <string name="notification_service_description">This accessibility service allows the Notification Check application to listen for notifications posted by other applications.</string>
+    <string name="notification_service_description">This notification service allows the Notification Check app to read all Android notifications.</string>
+    <string name="accessibility_service_description">This accessibility service allows the Notification Check app to read all Android notifications.\n\nNote: On some devices, turning this on will cause certain actions to be read aloud via the Text-To-Speech (TTS) system. This is a bug with the device\'s software and can be fixed by disabling or uninstalling all TTS systems.</string>
 
 </resources>

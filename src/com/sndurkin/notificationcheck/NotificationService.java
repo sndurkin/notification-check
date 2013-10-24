@@ -1,41 +1,38 @@
 package com.sndurkin.notificationcheck;
 
-import android.accessibilityservice.AccessibilityService;
-import android.accessibilityservice.AccessibilityServiceInfo;
-import android.util.Log;
-import android.view.accessibility.AccessibilityEvent;
+import android.content.Intent;
+import android.os.IBinder;
+import android.service.notification.NotificationListenerService;
+import android.service.notification.StatusBarNotification;
 
-// This is an accessibility service used to monitor the phone for notifications. When it
-// receives one, it sends it to ScreenOnReceiver.
-public class NotificationService extends AccessibilityService {
+// This is a notification listener service used on devices with Android 4.3+ to monitor the phone
+// for notifications. When it receives a notification, it sends it to ScreenOnReceiver.
+public class NotificationService extends NotificationListenerService {
 
-    public static final String SERVICE_NAME = "com.sndurkin.notificationcheck/com.sndurkin.notificationcheck.NotificationService";
-
-    private boolean isInit = false;
+    public static boolean isNotificationAccessEnabled = false;
 
     @Override
-    public void onAccessibilityEvent(AccessibilityEvent event) {
-        //Log.d("NotificationCheck", "Notification received from " + event.getPackageName() + " at " + event.getEventTime() + ": " + event.getText());
-        if(event.getEventType() == AccessibilityEvent.TYPE_NOTIFICATION_STATE_CHANGED) {
-            ScreenOnReceiver.getInstance().addNotificationEvent(event.getPackageName().toString());
-        }
+    public IBinder onBind(Intent intent) {
+        IBinder binder = super.onBind(intent);
+        isNotificationAccessEnabled = true;
+        return binder;
     }
 
     @Override
-    protected void onServiceConnected() {
-        if (isInit) {
-            return;
-        }
-        AccessibilityServiceInfo info = new AccessibilityServiceInfo();
-        info.eventTypes = AccessibilityEvent.TYPE_NOTIFICATION_STATE_CHANGED;
-        info.feedbackType = AccessibilityServiceInfo.FEEDBACK_GENERIC;
-        setServiceInfo(info);
-        isInit = true;
+    public boolean onUnbind(Intent intent) {
+        boolean retVal = super.onUnbind(intent);
+        isNotificationAccessEnabled = false;
+        return retVal;
     }
 
     @Override
-    public void onInterrupt() {
-        isInit = false;
+    public void onNotificationPosted(StatusBarNotification sbn) {
+        ScreenOnReceiver.getInstance().addNotificationEvent(sbn.getPackageName());
+    }
+
+    @Override
+    public void onNotificationRemoved(StatusBarNotification sbn) {
+        ScreenOnReceiver.getInstance().removeNotificationEvent(sbn.getPackageName());
     }
 
 }

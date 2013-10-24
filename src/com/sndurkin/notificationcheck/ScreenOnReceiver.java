@@ -11,21 +11,22 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 // This is where most of the logic for the application lives; when the SCREEN_ON event
 // is fired, the phone vibrates if there are any notifications.
 public class ScreenOnReceiver extends BroadcastReceiver {
 
     private boolean missedPhoneCall = false;
-    private List<String> eventPackages = new ArrayList<String>();
+    private Set<String> eventPackages = new HashSet<String>();
 
+    // Singleton pattern
     private static ScreenOnReceiver instance = new ScreenOnReceiver();
-
     public static ScreenOnReceiver getInstance() {
         return instance;
     }
-
     private ScreenOnReceiver() {
         super();
     }
@@ -127,6 +128,10 @@ public class ScreenOnReceiver extends BroadcastReceiver {
 
     public synchronized void addNotificationEvent(String packageName) {
         eventPackages.add(packageName);
+    }
+
+    public synchronized void removeNotificationEvent(String packageName) {
+        eventPackages.remove(packageName);
     }
 
     public synchronized void clearNotificationEvents() {

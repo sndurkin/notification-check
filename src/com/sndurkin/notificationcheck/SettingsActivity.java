@@ -7,18 +7,21 @@ import android.content.ActivityNotFoundException;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.Bundle;
-import android.preference.CheckBoxPreference;
-import android.preference.ListPreference;
-import android.preference.Preference;
-import android.preference.PreferenceActivity;
-import android.preference.PreferenceManager;
+import android.preference.*;
 import android.provider.Settings;
-import android.util.Log;
+import com.crashlytics.android.Crashlytics;
 
 // This PreferenceActivity is the main activity for the application,
 // as it mostly runs in the background.
 public class SettingsActivity extends PreferenceActivity {
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        Crashlytics.start(this);
+    }
+
 
     enum WhatToCheck {
         ALL_NOTIFICATIONS,
@@ -28,7 +31,8 @@ public class SettingsActivity extends PreferenceActivity {
     public static final String PREF_WHAT_DEFAULT = String.valueOf(WhatToCheck.ALL_NOTIFICATIONS.ordinal());
 
     private static final int ACCESSIBILITY_ALERT_DIALOG = 0;
-    private static final int HELP_DIALOG = 1;
+    private static final int NOTIfICATION_LISTENER_ALERT_DIALOG = 1;
+    private static final int HELP_DIALOG = 2;
 
     @Override
     protected void onPostCreate(Bundle savedInstanceState) {
@@ -43,25 +47,31 @@ public class SettingsActivity extends PreferenceActivity {
     protected void onResume() {
         super.onResume();
 
-        final CheckBoxPreference prefActive = (CheckBoxPreference) findPreference("pref_active");
-        if(!isNotificationServiceEnabled()) {
+        final TwoStatePreference prefActive = (TwoStatePreference) findPreference("pref_active");
+        if(!isNotificationAccessEnabled()) {
             prefActive.setChecked(false);
         }
     }
 
     private void setupUI() {
-        addPreferencesFromResource(R.xml.pref_general);
+        addPreferencesFromResource(R.xml.preferences);
 
-        final CheckBoxPreference prefActive = (CheckBoxPreference) findPreference("pref_active");
-        if(!isNotificationServiceEnabled()) {
+        final TwoStatePreference prefActive = (TwoStatePreference) findPreference("pref_active");
+        if(!isNotificationAccessEnabled()) {
             prefActive.setChecked(false);
         }
-        prefActive.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+        prefActive.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
             @Override
-            public boolean onPreferenceClick(final Preference preference) {
-                if(prefActive.isChecked() && !isNotificationServiceEnabled()) {
-                    prefActive.setChecked(false);
-                    showDialog(ACCESSIBILITY_ALERT_DIALOG);
+            public boolean onPreferenceChange(final Preference preference, Object newValue) {
+                if (((Boolean) newValue) && !isNotificationAccessEnabled()) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+                        showDialog(NOTIfICATION_LISTENER_ALERT_DIALOG);
+                    }
+                    else {
+                        showDialog(ACCESSIBILITY_ALERT_DIALOG);
+                    }
+
+                    return false;
                 }
                 return true;
             }
@@ -128,6 +138,24 @@ public class SettingsActivity extends PreferenceActivity {
                     })
                     .setNegativeButton(R.string.no, null)
                     .create();
+            case NOTIfICATION_LISTENER_ALERT_DIALOG:
+                return new AlertDialog.Builder(this)
+                        .setIcon(android.R.drawable.ic_dialog_alert)
+                        .setTitle(R.string.notification_listener_alert_title)
+                        .setMessage(R.string.notification_listener_alert_message)
+                        .setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                try {
+                                    startActivity(new Intent("android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS"));
+                                }
+                                catch (ActivityNotFoundException e) {
+                                    startActivity(new Intent(Settings.ACTION_SETTINGS));
+                                }
+                            }
+                        })
+                        .setNegativeButton(R.string.no, null)
+                        .create();
             case HELP_DIALOG:
                 return new AlertDialog.Builder(this)
                     .setIcon(android.R.drawable.ic_dialog_info)
@@ -146,30 +174,31 @@ public class SettingsActivity extends PreferenceActivity {
         }
     }
 
-    private boolean isNotificationServiceEnabled(){
-        int accessibilityEnabled = 0;
-        try {
-            accessibilityEnabled = Settings.Secure.getInt(this.getContentResolver(), Settings.Secure.ACCESSIBILITY_ENABLED);
+    private boolean isNotificationAccessEnabled() {
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+            // Check if the notification listener service is enabled.
+            return NotificationService.isNotificationAccessEnabled;
         }
-        catch (Settings.SettingNotFoundException e) {
-            //Log.d("NotificationCheck", "Error finding setting, default accessibility to not found: " + e.getMessage());
-        }
+        else {
+            // Check if the accessibility service is enabled.
+            int accessibilityEnabled = 0;
+            try {
+                accessibilityEnabled = Settings.Secure.getInt(this.getContentResolver(), Settings.Secure.ACCESSIBILITY_ENABLED);
+            }
+            catch (Settings.SettingNotFoundException e) {
+                // We can ignore this and just return false.
+            }
 
-        if (accessibilityEnabled == 1) {
-            //Log.d("NotificationCheck", "Accessibility is enabled");
-
-            String accessibilityServices = Settings.Secure.getString(getContentResolver(), Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES);
-            //Log.d("NotificationCheck", "Enabled accessibility services: " + accessibilityServices);
-            if (accessibilityServices != null) {
-                for(String accessibilityService : accessibilityServices.split(":")) {
-                    if (accessibilityService.equalsIgnoreCase(NotificationService.SERVICE_NAME)){
-                        return true;
+            if (accessibilityEnabled == 1) {
+                String accessibilityServices = Settings.Secure.getString(getContentResolver(), Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES);
+                if (accessibilityServices != null) {
+                    for(String accessibilityService : accessibilityServices.split(":")) {
+                        if (accessibilityService.equalsIgnoreCase(NotificationAccessibilityService.SERVICE_NAME)){
+                            return true;
+                        }
                     }
                 }
             }
-        }
-        else {
-            //Log.d("NotificationCheck", "Accessibility is disabled");
         }
 
         return false;

@@ -2,4 +2,4 @@
 <accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
         android:accessibilityEventTypes="typeNotificationStateChanged"
         android:accessibilityFeedbackType="feedbackGeneric"
-        android:description="@string/notification_service_description" />
+        android:description="@string/accessibility_service_description" />
