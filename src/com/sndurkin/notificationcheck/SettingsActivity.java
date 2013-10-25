@@ -11,28 +11,35 @@ import android.os.Build;
 import android.os.Bundle;
 import android.preference.*;
 import android.provider.Settings;
+import android.text.Spannable;
+import android.text.SpannableString;
+import android.text.TextUtils;
+import android.text.style.ForegroundColorSpan;
 import com.crashlytics.android.Crashlytics;
 
 // This PreferenceActivity is the main activity for the application,
 // as it mostly runs in the background.
 public class SettingsActivity extends PreferenceActivity {
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        Crashlytics.start(this);
-    }
-
 
     enum WhatToCheck {
         ALL_NOTIFICATIONS,
         ONLY_SELECTED_NOTIFICATIONS,
         ALL_BUT_SELECTED_NOTIFICATIONS
     }
-    public static final String PREF_WHAT_DEFAULT = String.valueOf(WhatToCheck.ALL_NOTIFICATIONS.ordinal());
+    enum WhenToVibrate {
+        ONLY_NEW_NOTIFICATIONS,
+        FOR_ALL_NOTIFICATIONS
+    }
 
     private static final int ACCESSIBILITY_ALERT_DIALOG = 0;
-    private static final int NOTIfICATION_LISTENER_ALERT_DIALOG = 1;
+    private static final int NOTIFICATION_LISTENER_ALERT_DIALOG = 1;
     private static final int HELP_DIALOG = 2;
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        Crashlytics.start(this);
+    }
 
     @Override
     protected void onPostCreate(Bundle savedInstanceState) {
@@ -65,7 +72,7 @@ public class SettingsActivity extends PreferenceActivity {
             public boolean onPreferenceChange(final Preference preference, Object newValue) {
                 if (((Boolean) newValue) && !isNotificationAccessEnabled()) {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-                        showDialog(NOTIfICATION_LISTENER_ALERT_DIALOG);
+                        showDialog(NOTIFICATION_LISTENER_ALERT_DIALOG);
                     }
                     else {
                         showDialog(ACCESSIBILITY_ALERT_DIALOG);
@@ -83,10 +90,8 @@ public class SettingsActivity extends PreferenceActivity {
             @Override
             public boolean onPreferenceChange(Preference preference, Object newValue) {
                 bindPreferenceSummaryListener.onPreferenceChange(preference, newValue);
-
                 int whatToCheck = Integer.parseInt(newValue.toString());
                 prefNotifications.setEnabled(whatToCheck != WhatToCheck.ALL_NOTIFICATIONS.ordinal());
-
                 return true;
             }
         });
@@ -94,6 +99,12 @@ public class SettingsActivity extends PreferenceActivity {
 
         int whatToCheck = Integer.parseInt(prefWhatToCheck.getValue().toString());
         prefNotifications.setEnabled(whatToCheck != WhatToCheck.ALL_NOTIFICATIONS.ordinal());
+
+        final RestrictableListPreference prefWhenToVibrate = (RestrictableListPreference) findPreference("pref_when");
+        bindPreferenceSummaryToValue(prefWhenToVibrate);
+        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR2) {
+            prefWhenToVibrate.setRestricted(getString(R.string.restricted_4_3));
+        }
 
         findPreference("pref_help").setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
             @Override
@@ -138,7 +149,7 @@ public class SettingsActivity extends PreferenceActivity {
                     })
                     .setNegativeButton(R.string.no, null)
                     .create();
-            case NOTIfICATION_LISTENER_ALERT_DIALOG:
+            case NOTIFICATION_LISTENER_ALERT_DIALOG:
                 return new AlertDialog.Builder(this)
                         .setIcon(android.R.drawable.ic_dialog_alert)
                         .setTitle(R.string.notification_listener_alert_title)
@@ -235,9 +246,11 @@ public class SettingsActivity extends PreferenceActivity {
     // immediately updated upon calling this method. The exact display format is
     // dependent on the type of preference.
     private static void bindPreferenceSummaryToValue(Preference preference) {
-        // Set the listener to watch for value changes.
-        preference.setOnPreferenceChangeListener(bindPreferenceSummaryListener);
-        initPreferenceSummaryValue(preference);
+        if(preference != null) {
+            // Set the listener to watch for value changes.
+            preference.setOnPreferenceChangeListener(bindPreferenceSummaryListener);
+            initPreferenceSummaryValue(preference);
+        }
     }
 
     private static void initPreferenceSummaryValue(Preference preference) {

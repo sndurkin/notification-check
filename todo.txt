@@ -1,0 +1,8 @@
+VERSION 1.3
+- change launcher icon
+- decide whether to add disabled vibrate rule for Android < 4.3
+- decide on better rule names (What to check, When to check, How to check?)
+- create list of simple tests to do for vibrate rule
+
+VERSION 2.0
+- add rule for How to check
