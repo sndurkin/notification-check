@@ -11,24 +11,27 @@ import android.os.Build;
 import android.os.Bundle;
 import android.preference.*;
 import android.provider.Settings;
-import android.text.Spannable;
-import android.text.SpannableString;
-import android.text.TextUtils;
-import android.text.style.ForegroundColorSpan;
 import com.crashlytics.android.Crashlytics;
 
 // This PreferenceActivity is the main activity for the application,
 // as it mostly runs in the background.
 public class SettingsActivity extends PreferenceActivity {
 
-    enum WhatToCheck {
-        ALL_NOTIFICATIONS,
-        ONLY_SELECTED_NOTIFICATIONS,
-        ALL_BUT_SELECTED_NOTIFICATIONS
+    enum FilterByApp {
+        ALL_APPS,
+        ONLY_SELECTED_APPS,
+        ALL_BUT_SELECTED_APPS
     }
-    enum WhenToVibrate {
-        ONLY_NEW_NOTIFICATIONS,
-        FOR_ALL_NOTIFICATIONS
+    enum PhoneRinger {
+        SILENT_OR_VIBRATE,
+        SILENT,
+        VIBRATE
+    }
+    enum NotificationType {
+        NEW_NOTIFICATIONS,
+        NEW_NON_PERSISTED_NOTIFICATIONS,
+        ALL_NOTIFICATIONS_UNTIL_DISMISSED,
+        NON_PERSISTED_NOTIFICATIONS_UNTIL_DISMISSED
     }
 
     private static final int ACCESSIBILITY_ALERT_DIALOG = 0;
@@ -38,7 +41,10 @@ public class SettingsActivity extends PreferenceActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Crashlytics.start(this);
+
+        if(BuildConfig.DEBUG) {
+            Crashlytics.start(this);
+        }
     }
 
     @Override
@@ -80,6 +86,7 @@ public class SettingsActivity extends PreferenceActivity {
 
                     return false;
                 }
+
                 return true;
             }
         });
@@ -91,19 +98,22 @@ public class SettingsActivity extends PreferenceActivity {
             public boolean onPreferenceChange(Preference preference, Object newValue) {
                 bindPreferenceSummaryListener.onPreferenceChange(preference, newValue);
                 int whatToCheck = Integer.parseInt(newValue.toString());
-                prefNotifications.setEnabled(whatToCheck != WhatToCheck.ALL_NOTIFICATIONS.ordinal());
+                prefNotifications.setEnabled(whatToCheck != FilterByApp.ALL_APPS.ordinal());
                 return true;
             }
         });
         initPreferenceSummaryValue(prefWhatToCheck);
 
         int whatToCheck = Integer.parseInt(prefWhatToCheck.getValue().toString());
-        prefNotifications.setEnabled(whatToCheck != WhatToCheck.ALL_NOTIFICATIONS.ordinal());
+        prefNotifications.setEnabled(whatToCheck != FilterByApp.ALL_APPS.ordinal());
 
-        final RestrictableListPreference prefWhenToVibrate = (RestrictableListPreference) findPreference("pref_when");
-        bindPreferenceSummaryToValue(prefWhenToVibrate);
+        EnhancedListPreference prefPhoneRinger = (EnhancedListPreference) findPreference("pref_phone_ringer");
+        bindPreferenceSummaryToValue(prefPhoneRinger);
+
+        final EnhancedListPreference prefNotificationType = (EnhancedListPreference) findPreference("pref_notification_type");
+        bindPreferenceSummaryToValue(prefNotificationType);
         if(Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR2) {
-            prefWhenToVibrate.setRestricted(getString(R.string.restricted_4_3));
+            prefNotificationType.setRestricted(getString(R.string.restricted_4_3));
         }
 
         findPreference("pref_help").setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {

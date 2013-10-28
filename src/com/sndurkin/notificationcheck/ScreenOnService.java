@@ -13,11 +13,15 @@ public class ScreenOnService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        Crashlytics.start(this);
+        if(BuildConfig.DEBUG) {
+            Crashlytics.start(this);
+        }
 
         IntentFilter filter = new IntentFilter();
         filter.addAction(Intent.ACTION_SCREEN_ON);
         filter.addAction(Intent.ACTION_SCREEN_OFF);
+        filter.addAction(ScreenOnReceiver.NOTIFICATION_POSTED_INTENT);
+        filter.addAction(ScreenOnReceiver.NOTIFICATION_REMOVED_INTENT);
         registerReceiver(ScreenOnReceiver.getInstance(), filter);
     }
 

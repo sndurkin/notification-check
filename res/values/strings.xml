@@ -10,11 +10,11 @@
     <string name="pref_active_title">Active</string>
     <string name="pref_active_summary">Whether or not this app is active</string>
 
-    <string name="pref_what_title">What to check for</string>
+    <string name="pref_what_title">Filter notifications by app</string>
     <string-array name="pref_what_displays">
-        <item>All notifications</item>
-        <item>Only selected notifications</item>
-        <item>All but the selected notifications</item>
+        <item>All apps</item>
+        <item>Only the selected apps</item>
+        <item>All but the selected apps</item>
     </string-array>
     <string-array name="pref_what_values">
         <item>0</item>
@@ -22,19 +22,46 @@
         <item>2</item>
     </string-array>
 
-    <string name="pref_notifications_title">Selected Notifications</string>
+    <string name="pref_notifications_title">Selected apps</string>
 
     <string name="pref_notifications_summary_pattern_none">None selected</string>
     <string name="pref_notifications_summary_pattern">%1$d selected</string>
 
-    <string name="pref_when_title">When to vibrate</string>
-    <string-array name="pref_when_displays">
-        <item>Only vibrate for new notifications</item>
-        <item>Always vibrate until notifications are dismissed</item>
+    <string name="pref_phone_ringer_title">Phone ringer</string>
+    <string-array name="pref_phone_ringer_displays">
+        <item>Vibrate when phone is on either silent or vibrate</item>
+        <item>Vibrate when phone is on silent</item>
+        <item>Vibrate when phone is on vibrate</item>
     </string-array>
-    <string-array name="pref_when_values">
+    <string-array name="pref_phone_ringer_dialog_displays">
+        <item>Either silent or vibrate</item>
+        <item>Silent</item>
+        <item>Vibrate</item>
+    </string-array>
+    <string-array name="pref_phone_ringer_values">
         <item>0</item>
         <item>1</item>
+        <item>2</item>
+    </string-array>
+
+    <string name="pref_notification_type_title">Notification type</string>
+    <string-array name="pref_notification_type_displays">
+        <item>Vibrate for new notifications</item>
+        <item>Vibrate for new non-persisted notifications</item>
+        <item>Vibrate for all notifications until they\'re dismissed</item>
+        <item>Vibrate for non-persisted notifications until they\'re dismissed</item>
+    </string-array>
+    <string-array name="pref_notification_type_dialog_displays">
+        <item>New notifications</item>
+        <item>New non-persisted notifications</item>
+        <item>All notifications until dismissed</item>
+        <item>Non-persisted notifications until dismissed</item>
+    </string-array>
+    <string-array name="pref_notification_type_values">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
     </string-array>
     <string name="restricted_4_3">"This is only available in Android 4.3+"</string>
 

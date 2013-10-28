@@ -7,18 +7,24 @@ import android.content.SharedPreferences;
 import android.media.AudioManager;
 import android.os.Vibrator;
 import android.preference.PreferenceManager;
-import android.util.Log;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 // This is where most of the logic for the application lives; when the SCREEN_ON event
 // is fired, the phone vibrates if there are any notifications.
 public class ScreenOnReceiver extends BroadcastReceiver {
 
+    public static final String NOTIFICATION_POSTED_INTENT = "com.sndurkin.notificationcheck.NOTIFICATION_POSTED_INTENT";
+    public static final String NOTIFICATION_REMOVED_INTENT = "com.sndurkin.notificationcheck.NOTIFICATION_REMOVED_INTENT";
+
     private boolean missedPhoneCall = false;
-    private Set<String> eventPackages = new HashSet<String>();
+
+    private class NotificationModel {
+        public long postedTime;
+        public String packageName;
+        public Boolean persistent;
+    }
+    private List<NotificationModel> notifications = new ArrayList<NotificationModel>();
 
     // Singleton pattern
     private static ScreenOnReceiver instance = new ScreenOnReceiver();
@@ -31,26 +37,47 @@ public class ScreenOnReceiver extends BroadcastReceiver {
 
     @Override
     public synchronized void onReceive(Context context, Intent intent) {
-        final SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
-        if(intent.getAction().equals(Intent.ACTION_SCREEN_OFF)) {
+        String action = intent.getAction();
+        if(NOTIFICATION_POSTED_INTENT.equals(action)) {
+            NotificationModel notification = new NotificationModel();
+            notification.packageName = intent.getStringExtra("packageName");
+            notification.postedTime = intent.getLongExtra("postedTime", 0L);
+            notification.persistent = intent.getBooleanExtra("persistent", false);
+            notifications.add(notification);
+        }
+        else if(NOTIFICATION_REMOVED_INTENT.equals(action)) {
+            long postedTime = intent.getLongExtra("postedTime", 0L);
+            String packageName = intent.getStringExtra("packageName");
+            Iterator<NotificationModel> iter = notifications.iterator();
+            while(iter.hasNext()) {
+                NotificationModel notification = iter.next();
+                if(notification.postedTime == postedTime && notification.packageName.equals(packageName)) {
+                    iter.remove();
+                    break;
+                }
+            }
+        }
+        else if(Intent.ACTION_SCREEN_OFF.equals(action)) {
+            final SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+            final int prefNotificationType = Integer.parseInt(preferences.getString("pref_notification_type", "0"));
             if(!missedPhoneCall) {
-                requestToClearNotificationEvents(preferences);
+                requestToClearNotifications(prefNotificationType);
             }
             else {
                 missedPhoneCall = false;
             }
             //Log.d("NotificationCheck", "SCREEN_OFF received at " + SystemClock.uptimeMillis());
         }
-        else if(intent.getAction().equals(Intent.ACTION_SCREEN_ON)) {
+        else if(Intent.ACTION_SCREEN_ON.equals(action)) {
+            final SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+            final int prefNotificationType = Integer.parseInt(preferences.getString("pref_notification_type", "0"));
             if(!preferences.getBoolean("pref_active", false)) {
-                requestToClearNotificationEvents(preferences);
+                requestToClearNotifications(prefNotificationType);
                 return;
             }
 
-            AudioManager am = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
-            if(am.getRingerMode() == AudioManager.RINGER_MODE_NORMAL) {
-                // This application is only active when the ringer is set to silent or vibrate.
-                requestToClearNotificationEvents(preferences);
+            if(!shouldCheckForNotifications(context, preferences)) {
+                requestToClearNotifications(prefNotificationType);
                 return;
             }
 
@@ -69,57 +96,59 @@ public class ScreenOnReceiver extends BroadcastReceiver {
 
                     @Override
                     public void onCallAnswered() {
-                        requestToClearNotificationEvents(preferences);
+                        requestToClearNotifications(prefNotificationType);
                         phoneCallListener.removeObserver(this);
                     }
                 });
                 return;
             }
 
-            boolean atLeastOneNotification = !eventPackages.isEmpty();
+            boolean atLeastOneNotification = false;
             boolean vibrateForNotifications;
 
             int prefWhatToCheck = Integer.parseInt(preferences.getString("pref_what", "0"));
-            if(prefWhatToCheck == SettingsActivity.WhatToCheck.ALL_NOTIFICATIONS.ordinal()) {
-                Log.d("NotificationCheck", "Will vibrate for notifications because we're monitoring all notifications");
+            if(prefWhatToCheck == SettingsActivity.FilterByApp.ALL_APPS.ordinal()) {
+                //Log.d("NotificationCheck", "Will vibrate for notifications because we're monitoring all notifications");
                 vibrateForNotifications = true;
             }
             else {
                 vibrateForNotifications = false;
+            }
 
-                List<String> selectedPackages = NotificationListPreference.extractListFromPref(preferences.getString("pref_notifications", ""));
-                for(String packageName : eventPackages) {
-                    if(selectedPackages.contains(packageName)) {
-                        if(prefWhatToCheck == SettingsActivity.WhatToCheck.ONLY_SELECTED_NOTIFICATIONS.ordinal()) {
-                            Log.d("NotificationCheck", "Will vibrate for notifications because " + packageName + " was among those selected");
-                            vibrateForNotifications = true;
-                        }
+            List<String> selectedPackages = NotificationListPreference.extractListFromPref(preferences.getString("pref_notifications", ""));
+            for(NotificationModel notification : notifications) {
+                if(notification.persistent) {
+                    if(prefNotificationType == SettingsActivity.NotificationType.NEW_NON_PERSISTED_NOTIFICATIONS.ordinal()
+                            || prefNotificationType == SettingsActivity.NotificationType.NON_PERSISTED_NOTIFICATIONS_UNTIL_DISMISSED.ordinal()) {
+                        // Ignore persistent notifications.
+                        continue;
                     }
-                    else {
-                        if(prefWhatToCheck == SettingsActivity.WhatToCheck.ALL_BUT_SELECTED_NOTIFICATIONS.ordinal()) {
-                            Log.d("NotificationCheck", "Will vibrate for notifications because " + packageName + " was NOT among those selected");
-                            vibrateForNotifications = true;
-                        }
+                }
+
+                atLeastOneNotification = true;
+
+                if(selectedPackages.contains(notification.packageName)) {
+                    if(prefWhatToCheck == SettingsActivity.FilterByApp.ONLY_SELECTED_APPS.ordinal()) {
+                        //Log.d("NotificationCheck", "Will vibrate for notifications because " + notification.packageName + " was among those selected");
+                        vibrateForNotifications = true;
+                    }
+                }
+                else {
+                    if(prefWhatToCheck == SettingsActivity.FilterByApp.ALL_BUT_SELECTED_APPS.ordinal()) {
+                        //Log.d("NotificationCheck", "Will vibrate for notifications because " + notification.packageName + " was NOT among those selected");
+                        vibrateForNotifications = true;
                     }
                 }
             }
 
-            requestToClearNotificationEvents(preferences);
+            requestToClearNotifications(prefNotificationType);
 
             if(vibrateForNotifications && atLeastOneNotification) {
-                Log.d("NotificationCheck", "Vibrating");
+                //Log.d("NotificationCheck", "Vibrating");
                 Vibrator v = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
                 v.vibrate(500);
             }
         }
-    }
-
-    public synchronized void addNotificationEvent(String packageName) {
-        eventPackages.add(packageName);
-    }
-
-    public synchronized void removeNotificationEvent(String packageName) {
-        eventPackages.remove(packageName);
     }
 
     // This method is used to ignore notifications that occurred before the screen shut off. On Android < 4.3,
@@ -128,11 +157,34 @@ public class ScreenOnReceiver extends BroadcastReceiver {
     //
     // If we're working with Android 4.3+, we can tell when notifications are dismissed, so the user dictates
     // whether notifications are ignored by Notification Check via the When To Vibrate preference.
-    public synchronized void requestToClearNotificationEvents(SharedPreferences preferences) {
-        int prefWhenToVibrate = Integer.parseInt(preferences.getString("pref_when", "0"));
-        if(prefWhenToVibrate == SettingsActivity.WhenToVibrate.ONLY_NEW_NOTIFICATIONS.ordinal()) {
-            eventPackages.clear();
+    private void requestToClearNotifications(int prefNotificationType) {
+        if(prefNotificationType == SettingsActivity.NotificationType.NEW_NOTIFICATIONS.ordinal()
+                || prefNotificationType == SettingsActivity.NotificationType.NEW_NON_PERSISTED_NOTIFICATIONS.ordinal()) {
+            notifications.clear();
         }
+    }
+
+    // When the screen is turned on, this method is called to determine if we even need to check for notifications.
+    // If the phone ringer doesn't align with the preferences, we don't bother checking.
+    private boolean shouldCheckForNotifications(Context context, SharedPreferences preferences) {
+        AudioManager am = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+        int prefPhoneRinger = Integer.parseInt(preferences.getString("pref_phone_ringer", "0"));
+        switch(am.getRingerMode()) {
+            case AudioManager.RINGER_MODE_SILENT:
+                if(prefPhoneRinger == SettingsActivity.PhoneRinger.SILENT.ordinal()
+                        || prefPhoneRinger == SettingsActivity.PhoneRinger.SILENT_OR_VIBRATE.ordinal()) {
+                    return true;
+                }
+                break;
+            case AudioManager.RINGER_MODE_VIBRATE:
+                if(prefPhoneRinger == SettingsActivity.PhoneRinger.VIBRATE.ordinal()
+                        || prefPhoneRinger == SettingsActivity.PhoneRinger.SILENT_OR_VIBRATE.ordinal()) {
+                    return true;
+                }
+                break;
+        }
+
+        return false;
     }
 
 }

@@ -27,12 +27,18 @@ public class NotificationService extends NotificationListenerService {
 
     @Override
     public void onNotificationPosted(StatusBarNotification sbn) {
-        ScreenOnReceiver.getInstance().addNotificationEvent(sbn.getPackageName());
+        Intent intent = new Intent(ScreenOnReceiver.NOTIFICATION_POSTED_INTENT);
+        intent.putExtra("postedTime", sbn.getPostTime());
+        intent.putExtra("packageName", sbn.getPackageName());
+        intent.putExtra("persistent", !sbn.isClearable());
+        sendBroadcast(intent);
     }
 
     @Override
     public void onNotificationRemoved(StatusBarNotification sbn) {
-        ScreenOnReceiver.getInstance().removeNotificationEvent(sbn.getPackageName());
+        Intent intent = new Intent(ScreenOnReceiver.NOTIFICATION_REMOVED_INTENT);
+        intent.putExtra("packageName", sbn.getPackageName());
+        sendBroadcast(intent);
     }
 
 }

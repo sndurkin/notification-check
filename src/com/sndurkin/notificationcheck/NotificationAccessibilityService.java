@@ -2,6 +2,7 @@ package com.sndurkin.notificationcheck;
 
 import android.accessibilityservice.AccessibilityService;
 import android.accessibilityservice.AccessibilityServiceInfo;
+import android.content.Intent;
 import android.util.Log;
 import android.view.accessibility.AccessibilityEvent;
 
@@ -16,7 +17,10 @@ public class NotificationAccessibilityService extends AccessibilityService {
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
         if(event.getEventType() == AccessibilityEvent.TYPE_NOTIFICATION_STATE_CHANGED) {
-            ScreenOnReceiver.getInstance().addNotificationEvent(event.getPackageName().toString());
+            Intent intent = new Intent(ScreenOnReceiver.NOTIFICATION_POSTED_INTENT);
+            intent.putExtra("postedTime", event.getEventTime());
+            intent.putExtra("packageName", event.getPackageName().toString());
+            sendBroadcast(intent);
         }
     }
 
