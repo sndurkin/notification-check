@@ -1,7 +1,8 @@
 VERSION 1.3
 - change launcher icon
 - enhance the phone ringer setting to use a checkbox list preference
-- add vibration patterns, and possibly per-app patterns
+- add vibration patterns
+- add per-app vibration patterns
 
 VERSION 2.0
 - add support for rooted devices

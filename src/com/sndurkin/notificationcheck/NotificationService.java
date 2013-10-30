@@ -1,7 +1,9 @@
 package com.sndurkin.notificationcheck;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.IBinder;
+import android.preference.PreferenceManager;
 import android.service.notification.NotificationListenerService;
 import android.service.notification.StatusBarNotification;
 
@@ -27,10 +29,19 @@ public class NotificationService extends NotificationListenerService {
 
     @Override
     public void onNotificationPosted(StatusBarNotification sbn) {
+        if(!sbn.isClearable()) {
+            final SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+            final int prefNotificationType = Integer.parseInt(preferences.getString("pref_notification_type", "0"));
+            if(prefNotificationType == SettingsActivity.NotificationType.NEW_NON_PERSISTED_NOTIFICATIONS.ordinal()
+                    || prefNotificationType == SettingsActivity.NotificationType.NON_PERSISTED_NOTIFICATIONS_UNTIL_DISMISSED.ordinal()) {
+                // User wants to ignore persisted notifications.
+                return;
+            }
+        }
+
         Intent intent = new Intent(ScreenOnReceiver.NOTIFICATION_POSTED_INTENT);
-        intent.putExtra("postedTime", sbn.getPostTime());
         intent.putExtra("packageName", sbn.getPackageName());
-        intent.putExtra("persistent", !sbn.isClearable());
+        intent.putExtra("id", sbn.getId());
         sendBroadcast(intent);
     }
 
@@ -38,6 +49,7 @@ public class NotificationService extends NotificationListenerService {
     public void onNotificationRemoved(StatusBarNotification sbn) {
         Intent intent = new Intent(ScreenOnReceiver.NOTIFICATION_REMOVED_INTENT);
         intent.putExtra("packageName", sbn.getPackageName());
+        intent.putExtra("id", sbn.getId());
         sendBroadcast(intent);
     }
 

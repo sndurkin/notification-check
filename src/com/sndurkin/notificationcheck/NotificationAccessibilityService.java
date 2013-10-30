@@ -18,7 +18,6 @@ public class NotificationAccessibilityService extends AccessibilityService {
     public void onAccessibilityEvent(AccessibilityEvent event) {
         if(event.getEventType() == AccessibilityEvent.TYPE_NOTIFICATION_STATE_CHANGED) {
             Intent intent = new Intent(ScreenOnReceiver.NOTIFICATION_POSTED_INTENT);
-            intent.putExtra("postedTime", event.getEventTime());
             intent.putExtra("packageName", event.getPackageName().toString());
             sendBroadcast(intent);
         }

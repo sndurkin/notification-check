@@ -20,9 +20,8 @@ public class ScreenOnReceiver extends BroadcastReceiver {
     private boolean missedPhoneCall = false;
 
     private class NotificationModel {
-        public long postedTime;
         public String packageName;
-        public Boolean persistent;
+        public int id;
     }
     private List<NotificationModel> notifications = new ArrayList<NotificationModel>();
 
@@ -41,19 +40,17 @@ public class ScreenOnReceiver extends BroadcastReceiver {
         if(NOTIFICATION_POSTED_INTENT.equals(action)) {
             NotificationModel notification = new NotificationModel();
             notification.packageName = intent.getStringExtra("packageName");
-            notification.postedTime = intent.getLongExtra("postedTime", 0L);
-            notification.persistent = intent.getBooleanExtra("persistent", false);
+            notification.id = intent.getIntExtra("id", -1);
             notifications.add(notification);
         }
         else if(NOTIFICATION_REMOVED_INTENT.equals(action)) {
-            long postedTime = intent.getLongExtra("postedTime", 0L);
             String packageName = intent.getStringExtra("packageName");
+            int id = intent.getIntExtra("id", -1);
             Iterator<NotificationModel> iter = notifications.iterator();
             while(iter.hasNext()) {
                 NotificationModel notification = iter.next();
-                if(notification.postedTime == postedTime && notification.packageName.equals(packageName)) {
+                if(notification.id == id && notification.packageName.equals(packageName)) {
                     iter.remove();
-                    break;
                 }
             }
         }
@@ -103,7 +100,7 @@ public class ScreenOnReceiver extends BroadcastReceiver {
                 return;
             }
 
-            boolean atLeastOneNotification = false;
+            boolean atLeastOneNotification = !notifications.isEmpty();
             boolean vibrateForNotifications;
 
             int prefWhatToCheck = Integer.parseInt(preferences.getString("pref_what", "0"));
@@ -113,30 +110,19 @@ public class ScreenOnReceiver extends BroadcastReceiver {
             }
             else {
                 vibrateForNotifications = false;
-            }
-
-            List<String> selectedPackages = NotificationListPreference.extractListFromPref(preferences.getString("pref_notifications", ""));
-            for(NotificationModel notification : notifications) {
-                if(notification.persistent) {
-                    if(prefNotificationType == SettingsActivity.NotificationType.NEW_NON_PERSISTED_NOTIFICATIONS.ordinal()
-                            || prefNotificationType == SettingsActivity.NotificationType.NON_PERSISTED_NOTIFICATIONS_UNTIL_DISMISSED.ordinal()) {
-                        // Ignore persistent notifications.
-                        continue;
+                List<String> selectedPackages = NotificationListPreference.extractListFromPref(preferences.getString("pref_notifications", ""));
+                for(NotificationModel notification : notifications) {
+                    if(selectedPackages.contains(notification.packageName)) {
+                        if(prefWhatToCheck == SettingsActivity.FilterByApp.ONLY_SELECTED_APPS.ordinal()) {
+                            //Log.d("NotificationCheck", "Will vibrate for notifications because " + notification.packageName + " was among those selected");
+                            vibrateForNotifications = true;
+                        }
                     }
-                }
-
-                atLeastOneNotification = true;
-
-                if(selectedPackages.contains(notification.packageName)) {
-                    if(prefWhatToCheck == SettingsActivity.FilterByApp.ONLY_SELECTED_APPS.ordinal()) {
-                        //Log.d("NotificationCheck", "Will vibrate for notifications because " + notification.packageName + " was among those selected");
-                        vibrateForNotifications = true;
-                    }
-                }
-                else {
-                    if(prefWhatToCheck == SettingsActivity.FilterByApp.ALL_BUT_SELECTED_APPS.ordinal()) {
-                        //Log.d("NotificationCheck", "Will vibrate for notifications because " + notification.packageName + " was NOT among those selected");
-                        vibrateForNotifications = true;
+                    else {
+                        if(prefWhatToCheck == SettingsActivity.FilterByApp.ALL_BUT_SELECTED_APPS.ordinal()) {
+                            //Log.d("NotificationCheck", "Will vibrate for notifications because " + notification.packageName + " was NOT among those selected");
+                            vibrateForNotifications = true;
+                        }
                     }
                 }
             }
