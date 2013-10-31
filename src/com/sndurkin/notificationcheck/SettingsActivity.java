@@ -38,10 +38,13 @@ public class SettingsActivity extends PreferenceActivity {
     private static final int NOTIFICATION_LISTENER_ALERT_DIALOG = 1;
     private static final int HELP_DIALOG = 2;
 
+    SharedPreferences preferences;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        preferences = PreferenceManager.getDefaultSharedPreferences(this);
         if(BuildConfig.DEBUG) {
             Crashlytics.start(this);
         }
@@ -51,7 +54,14 @@ public class SettingsActivity extends PreferenceActivity {
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
 
-        setupUI();
+        addPreferencesFromResource(R.xml.preferences);
+
+        initActivePref();
+        initFilterNotificationsPref();
+        initPhoneRingerPref();
+        initNotificationTypePref();
+        initHelpPref();
+
         launchHelpIfApplicable();
         startService(new Intent(this, ScreenOnService.class));
     }
@@ -66,9 +76,7 @@ public class SettingsActivity extends PreferenceActivity {
         }
     }
 
-    private void setupUI() {
-        addPreferencesFromResource(R.xml.preferences);
-
+    private void initActivePref() {
         final TwoStatePreference prefActive = (TwoStatePreference) findPreference("pref_active");
         if(!isNotificationAccessEnabled()) {
             prefActive.setChecked(false);
@@ -90,7 +98,9 @@ public class SettingsActivity extends PreferenceActivity {
                 return true;
             }
         });
+    }
 
+    private void initFilterNotificationsPref() {
         final Preference prefNotifications  = findPreference("pref_notifications");
         final ListPreference prefWhatToCheck = (ListPreference) findPreference("pref_what");
         prefWhatToCheck.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
@@ -106,16 +116,62 @@ public class SettingsActivity extends PreferenceActivity {
 
         int whatToCheck = Integer.parseInt(prefWhatToCheck.getValue().toString());
         prefNotifications.setEnabled(whatToCheck != FilterByApp.ALL_APPS.ordinal());
+    }
 
-        EnhancedListPreference prefPhoneRinger = (EnhancedListPreference) findPreference("pref_phone_ringer");
-        bindPreferenceSummaryToValue(prefPhoneRinger);
+    private void initPhoneRingerPref() {
+        MultiSelectListPreference prefPhoneRinger = (MultiSelectListPreference) findPreference("pref_phone_ringer");
+        Preference.OnPreferenceChangeListener changeListener = new Preference.OnPreferenceChangeListener() {
+            @Override
+            public boolean onPreferenceChange(Preference preference, Object newValue) {
+                MultiSelectListPreference listPreference = (MultiSelectListPreference) preference;
 
+                CharSequence[] values;
+                if(newValue instanceof String) {
+                    String valueStr = (String) newValue;
+                    if(valueStr.isEmpty()) {
+                        values = new CharSequence[0];
+                    }
+                    else {
+                        values = valueStr.split(MultiSelectListPreference.SEPARATOR_REGEX);
+                    }
+                }
+                else {
+                    values = (CharSequence[]) newValue;
+                }
+
+                if(values.length == 0) {
+                    preference.setSummary(getString(R.string.pref_phone_ringer_summary_empty));
+                }
+                else {
+                    String displayStr = "";
+                    for(int i = 0; i < values.length; ++i) {
+                        if(i > 0) {
+                            displayStr += ", ";
+                        }
+                        displayStr += listPreference.getEntries()[listPreference.findIndexOfValue(values[i].toString())];
+                    }
+
+                    preference.setSummary(getString(R.string.pref_phone_ringer_summary, displayStr));
+                }
+
+                return true;
+            }
+        };
+        prefPhoneRinger.setOnPreferenceChangeListener(changeListener);
+
+        String val = preferences.getString(prefPhoneRinger.getKey(), "");
+        changeListener.onPreferenceChange(prefPhoneRinger, val);
+    }
+
+    private void initNotificationTypePref() {
         final EnhancedListPreference prefNotificationType = (EnhancedListPreference) findPreference("pref_notification_type");
         bindPreferenceSummaryToValue(prefNotificationType);
         if(Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR2) {
             prefNotificationType.setRestricted(getString(R.string.restricted_4_3));
         }
+    }
 
+    private void initHelpPref() {
         findPreference("pref_help").setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
             @Override
             public boolean onPreferenceClick(Preference preference) {
@@ -127,7 +183,6 @@ public class SettingsActivity extends PreferenceActivity {
 
     // Launches a Help dialog if this is the first run of the application.
     private void launchHelpIfApplicable() {
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
         boolean previouslyStarted = preferences.getBoolean("pref_previously_started", false);
         if(!previouslyStarted) {
             SharedPreferences.Editor edit = preferences.edit();
@@ -238,8 +293,7 @@ public class SettingsActivity extends PreferenceActivity {
                 int index = listPreference.findIndexOfValue(stringValue);
 
                 // Set the summary to reflect the new value.
-                preference.setSummary(index >= 0 ? listPreference.getEntries()[index]
-                        : null);
+                preference.setSummary(index >= 0 ? listPreference.getEntries()[index] : null);
             }
             else {
                 // For all other preferences, set the summary to the value's

@@ -25,13 +25,12 @@
         android:entryValues="@array/pref_what_values"
         android:defaultValue="0"/>
 
-    <com.sndurkin.notificationcheck.EnhancedListPreference
+    <com.sndurkin.notificationcheck.MultiSelectListPreference
         android:key="pref_phone_ringer"
         android:title="@string/pref_phone_ringer_title"
         android:entries="@array/pref_phone_ringer_displays"
         android:entryValues="@array/pref_phone_ringer_values"
-        app:dialogEntries="@array/pref_phone_ringer_dialog_displays"
-        android:defaultValue="0" />
+        android:defaultValue="@array/pref_phone_ringer_defaults" />
 
     <com.sndurkin.notificationcheck.EnhancedListPreference
         android:key="pref_notification_type"
