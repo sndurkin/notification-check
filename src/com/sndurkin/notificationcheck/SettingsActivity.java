@@ -23,9 +23,9 @@ public class SettingsActivity extends PreferenceActivity {
         ALL_BUT_SELECTED_APPS
     }
     enum PhoneRinger {
-        SILENT_OR_VIBRATE,
         SILENT,
-        VIBRATE
+        VIBRATE,
+        NORMAL
     }
     enum NotificationType {
         NEW_NOTIFICATIONS,
@@ -45,7 +45,7 @@ public class SettingsActivity extends PreferenceActivity {
         super.onCreate(savedInstanceState);
 
         preferences = PreferenceManager.getDefaultSharedPreferences(this);
-        if(BuildConfig.DEBUG) {
+        if(!BuildConfig.DEBUG) {
             Crashlytics.start(this);
         }
     }
@@ -119,7 +119,7 @@ public class SettingsActivity extends PreferenceActivity {
     }
 
     private void initPhoneRingerPref() {
-        MultiSelectListPreference prefPhoneRinger = (MultiSelectListPreference) findPreference("pref_phone_ringer");
+        MultiSelectListPreference prefPhoneRinger = (MultiSelectListPreference) findPreference("pref_phone_ringer_v2");
         Preference.OnPreferenceChangeListener changeListener = new Preference.OnPreferenceChangeListener() {
             @Override
             public boolean onPreferenceChange(Preference preference, Object newValue) {

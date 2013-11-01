@@ -13,7 +13,7 @@ public class ScreenOnService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        if(BuildConfig.DEBUG) {
+        if(!BuildConfig.DEBUG) {
             Crashlytics.start(this);
         }
 

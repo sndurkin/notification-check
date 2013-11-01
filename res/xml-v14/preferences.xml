@@ -26,7 +26,7 @@
         android:defaultValue="0"/>
 
     <com.sndurkin.notificationcheck.MultiSelectListPreference
-        android:key="pref_phone_ringer"
+        android:key="pref_phone_ringer_v2"
         android:title="@string/pref_phone_ringer_title"
         android:entries="@array/pref_phone_ringer_displays"
         android:entryValues="@array/pref_phone_ringer_values"

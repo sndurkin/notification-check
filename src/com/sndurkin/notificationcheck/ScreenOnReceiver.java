@@ -154,17 +154,21 @@ public class ScreenOnReceiver extends BroadcastReceiver {
     // If the phone ringer doesn't align with the preferences, we don't bother checking.
     private boolean shouldCheckForNotifications(Context context, SharedPreferences preferences) {
         AudioManager am = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
-        int prefPhoneRinger = Integer.parseInt(preferences.getString("pref_phone_ringer", "0"));
+        String prefPhoneRinger = preferences.getString("pref_phone_ringer_v2", "0" + MultiSelectListPreference.SEPARATOR + "1");
+        List<Integer> prefPhoneRingerValues = MultiSelectListPreference.getValuesFromString(prefPhoneRinger);
         switch(am.getRingerMode()) {
             case AudioManager.RINGER_MODE_SILENT:
-                if(prefPhoneRinger == SettingsActivity.PhoneRinger.SILENT.ordinal()
-                        || prefPhoneRinger == SettingsActivity.PhoneRinger.SILENT_OR_VIBRATE.ordinal()) {
+                if(prefPhoneRingerValues.contains(SettingsActivity.PhoneRinger.SILENT.ordinal())) {
                     return true;
                 }
                 break;
             case AudioManager.RINGER_MODE_VIBRATE:
-                if(prefPhoneRinger == SettingsActivity.PhoneRinger.VIBRATE.ordinal()
-                        || prefPhoneRinger == SettingsActivity.PhoneRinger.SILENT_OR_VIBRATE.ordinal()) {
+                if(prefPhoneRingerValues.contains(SettingsActivity.PhoneRinger.VIBRATE.ordinal())) {
+                    return true;
+                }
+                break;
+            case AudioManager.RINGER_MODE_NORMAL:
+                if(prefPhoneRingerValues.contains(SettingsActivity.PhoneRinger.NORMAL.ordinal())) {
                     return true;
                 }
                 break;

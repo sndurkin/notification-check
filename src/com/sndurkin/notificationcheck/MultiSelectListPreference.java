@@ -48,17 +48,25 @@ public class MultiSelectListPreference extends ListPreference {
     }
 
     private CharSequence[] unpack(CharSequence val) {
-        if (val == null || "".equals(val)) {
+        if (val == null || val.length() == 0) {
             return new CharSequence[0];
         } else {
             return ((String) val).split(SEPARATOR_REGEX);
         }
     }
-    /**
-     * Gets the entries values that are selected
-     *
-     * @return the selected entries values
-     */
+
+    public static List<Integer> getValuesFromString(String valuesStr) {
+        if(valuesStr.isEmpty()) {
+            return new ArrayList<Integer>();
+        }
+        String[] values = valuesStr.split(SEPARATOR_REGEX);
+        List<Integer> intValues = new ArrayList<Integer>();
+        for(int i = 0; i < values.length; ++i) {
+            intValues.add(Integer.parseInt(values[i]));
+        }
+        return intValues;
+    }
+
     public CharSequence[] getCheckedValues() {
         return unpack(getValue());
     }
