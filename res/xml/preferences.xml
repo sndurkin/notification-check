@@ -15,6 +15,7 @@
         android:title="@string/pref_what_title"
         android:entries="@array/pref_what_displays"
         android:entryValues="@array/pref_what_values"
+        app:dialogEntries="@array/pref_what_dialog_displays"
         android:defaultValue="0" />
 
     <com.sndurkin.notificationcheck.NotificationListPreference
@@ -38,6 +39,13 @@
         android:entries="@array/pref_notification_type_displays"
         android:entryValues="@array/pref_notification_type_values"
         app:dialogEntries="@array/pref_notification_type_dialog_displays"
+        android:defaultValue="0" />
+
+    <com.sndurkin.notificationcheck.EnhancedListPreference
+        android:key="pref_vibration_pattern"
+        android:title="@string/pref_vibration_pattern_title"
+        android:entries="@array/pref_vibration_pattern_displays"
+        android:entryValues="@array/pref_vibration_pattern_values"
         android:defaultValue="0" />
 
     <PreferenceCategory

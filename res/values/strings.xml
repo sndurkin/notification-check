@@ -10,8 +10,22 @@
     <string name="pref_active_title">Active</string>
     <string name="pref_active_summary">Whether or not this app is active</string>
 
+    <string name="accessibility_alert_title">Notification Check Service</string>
+    <string name="accessibility_alert_message">Accessibility must be enabled and the Notification Check accessibility service must be enabled for the app to be active.\n\nOpen the Accessibility settings?</string>
+
+    <string name="notification_listener_alert_title">Notification Check Service</string>
+    <string name="notification_listener_alert_message">The Notification Check listener service must be enabled for the app to be active.\n\nOpen the notification listener settings?</string>
+
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+
     <string name="pref_what_title">Filter notifications by app</string>
     <string-array name="pref_what_displays">
+        <item>Check for all apps</item>
+        <item>Check for only the selected apps</item>
+        <item>Check for all but the selected apps</item>
+    </string-array>
+    <string-array name="pref_what_dialog_displays">
         <item>All apps</item>
         <item>Only the selected apps</item>
         <item>All but the selected apps</item>
@@ -66,14 +80,19 @@
     </string-array>
     <string name="restricted_4_3">"This is only available in Android 4.3+"</string>
 
-    <string name="accessibility_alert_title">Notification Check Service</string>
-    <string name="accessibility_alert_message">Accessibility must be enabled and the Notification Check accessibility service must be enabled for the app to be active.\n\nOpen the Accessibility settings?</string>
-
-    <string name="notification_listener_alert_title">Notification Check Service</string>
-    <string name="notification_listener_alert_message">The Notification Check listener service must be enabled for the app to be active.\n\nOpen the notification listener settings?</string>
-
-    <string name="yes">Yes</string>
-    <string name="no">No</string>
+    <string name="pref_vibration_pattern_title">Vibration pattern</string>
+    <string-array name="pref_vibration_pattern_displays">
+        <item>Short vibration</item>
+        <item>Long vibration</item>
+        <item>2 short vibrations</item>
+        <item>2 long vibrations</item>
+    </string-array>
+    <string-array name="pref_vibration_pattern_values">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+    </string-array>
 
     <string name="pref_help_title">Help</string>
     <string name="pref_help_summary">Instructions for how to use this app</string>

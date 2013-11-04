@@ -132,7 +132,22 @@ public class ScreenOnReceiver extends BroadcastReceiver {
             if(vibrateForNotifications && atLeastOneNotification) {
                 //Log.d("NotificationCheck", "Vibrating");
                 Vibrator v = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
-                v.vibrate(500);
+                int prefVibrationPattern = Integer.parseInt(preferences.getString("pref_vibration_pattern", "0"));
+                if(prefVibrationPattern == SettingsActivity.VibrationPattern.SHORT.ordinal()) {
+                    v.vibrate(SettingsActivity.SHORT_VIBRATION_LENGTH);
+                }
+                else if(prefVibrationPattern == SettingsActivity.VibrationPattern.LONG.ordinal()) {
+                    v.vibrate(SettingsActivity.LONG_VIBRATION_LENGTH);
+                }
+                else if(prefVibrationPattern == SettingsActivity.VibrationPattern.TWO_SHORT.ordinal()) {
+                    v.vibrate(new long[] { 0, SettingsActivity.SHORT_VIBRATION_LENGTH, 200, SettingsActivity.SHORT_VIBRATION_LENGTH }, -1);
+                }
+                else if(prefVibrationPattern == SettingsActivity.VibrationPattern.TWO_LONG.ordinal()) {
+                    v.vibrate(new long[] { 0, SettingsActivity.LONG_VIBRATION_LENGTH, 200, SettingsActivity.LONG_VIBRATION_LENGTH }, -1);
+                }
+                else {
+                    throw new RuntimeException("The vibration pattern preference has an invalid value: " + prefVibrationPattern);
+                }
             }
         }
     }

@@ -3,12 +3,10 @@ package com.sndurkin.notificationcheck;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.content.ActivityNotFoundException;
-import android.content.DialogInterface;
-import android.content.Intent;
-import android.content.SharedPreferences;
+import android.content.*;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Vibrator;
 import android.preference.*;
 import android.provider.Settings;
 import com.crashlytics.android.Crashlytics;
@@ -33,6 +31,15 @@ public class SettingsActivity extends PreferenceActivity {
         ALL_NOTIFICATIONS_UNTIL_DISMISSED,
         NON_PERSISTED_NOTIFICATIONS_UNTIL_DISMISSED
     }
+    enum VibrationPattern {
+        SHORT,
+        LONG,
+        TWO_SHORT,
+        TWO_LONG
+    }
+
+    public static final int SHORT_VIBRATION_LENGTH = 300;
+    public static final int LONG_VIBRATION_LENGTH = 600;
 
     private static final int ACCESSIBILITY_ALERT_DIALOG = 0;
     private static final int NOTIFICATION_LISTENER_ALERT_DIALOG = 1;
@@ -60,6 +67,7 @@ public class SettingsActivity extends PreferenceActivity {
         initFilterNotificationsPref();
         initPhoneRingerPref();
         initNotificationTypePref();
+        initVibrationPatternPref();
         initHelpPref();
 
         launchHelpIfApplicable();
@@ -169,6 +177,11 @@ public class SettingsActivity extends PreferenceActivity {
         if(Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR2) {
             prefNotificationType.setRestricted(getString(R.string.restricted_4_3));
         }
+    }
+
+    private void initVibrationPatternPref() {
+        final EnhancedListPreference prefVibrationPattern = (EnhancedListPreference) findPreference("pref_vibration_pattern");
+        bindPreferenceSummaryToValue(prefVibrationPattern);
     }
 
     private void initHelpPref() {
