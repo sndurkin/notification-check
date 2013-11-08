@@ -1,5 +1,6 @@
 package com.sndurkin.notificationcheck;
 
+import android.app.ActivityManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -7,6 +8,7 @@ import android.content.SharedPreferences;
 import android.media.AudioManager;
 import android.os.Vibrator;
 import android.preference.PreferenceManager;
+import android.util.Log;
 
 import java.util.*;
 
@@ -66,6 +68,10 @@ public class ScreenOnReceiver extends BroadcastReceiver {
             //Log.d("NotificationCheck", "SCREEN_OFF received at " + SystemClock.uptimeMillis());
         }
         else if(Intent.ACTION_SCREEN_ON.equals(action)) {
+            ActivityManager activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+            List<ActivityManager.RunningTaskInfo> appProcesses = activityManager.getRunningTasks(1);
+            Log.d("Notification Check", "Foreground Package: " + appProcesses.get(0).topActivity.getPackageName());
+
             final SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
             final int prefNotificationType = Integer.parseInt(preferences.getString("pref_notification_type", "0"));
             if(!preferences.getBoolean("pref_active", false)) {

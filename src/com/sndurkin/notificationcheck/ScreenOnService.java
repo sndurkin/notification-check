@@ -13,9 +13,11 @@ public class ScreenOnService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+        /*
         if(!BuildConfig.DEBUG) {
             Crashlytics.start(this);
         }
+        */
 
         IntentFilter filter = new IntentFilter();
         filter.addAction(Intent.ACTION_SCREEN_ON);

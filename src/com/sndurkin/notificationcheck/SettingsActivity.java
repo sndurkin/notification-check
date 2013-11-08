@@ -6,7 +6,6 @@ import android.app.Dialog;
 import android.content.*;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Vibrator;
 import android.preference.*;
 import android.provider.Settings;
 import com.crashlytics.android.Crashlytics;
@@ -52,9 +51,11 @@ public class SettingsActivity extends PreferenceActivity {
         super.onCreate(savedInstanceState);
 
         preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        /*
         if(!BuildConfig.DEBUG) {
             Crashlytics.start(this);
         }
+        */
     }
 
     @Override
@@ -78,16 +79,26 @@ public class SettingsActivity extends PreferenceActivity {
     protected void onResume() {
         super.onResume();
 
-        final TwoStatePreference prefActive = (TwoStatePreference) findPreference("pref_active");
+        final Preference prefActive = findPreference("pref_active");
         if(!isNotificationAccessEnabled()) {
-            prefActive.setChecked(false);
+            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+                ((SwitchPreference) prefActive).setChecked(false);
+            }
+            else {
+                ((CheckBoxPreference) prefActive).setChecked(false);
+            }
         }
     }
 
     private void initActivePref() {
-        final TwoStatePreference prefActive = (TwoStatePreference) findPreference("pref_active");
+        final Preference prefActive = findPreference("pref_active");
         if(!isNotificationAccessEnabled()) {
-            prefActive.setChecked(false);
+            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+                ((SwitchPreference) prefActive).setChecked(false);
+            }
+            else {
+                ((CheckBoxPreference) prefActive).setChecked(false);
+            }
         }
         prefActive.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
             @Override
