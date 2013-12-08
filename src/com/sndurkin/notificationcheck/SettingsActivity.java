@@ -147,7 +147,7 @@ public class SettingsActivity extends PreferenceActivity {
                 CharSequence[] values;
                 if(newValue instanceof String) {
                     String valueStr = (String) newValue;
-                    if(valueStr.isEmpty()) {
+                    if(valueStr.length() == 0) {
                         values = new CharSequence[0];
                     }
                     else {
