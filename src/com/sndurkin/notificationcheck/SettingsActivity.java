@@ -8,7 +8,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.preference.*;
 import android.provider.Settings;
-import com.crashlytics.android.Crashlytics;
 
 // This PreferenceActivity is the main activity for the application,
 // as it mostly runs in the background.
@@ -51,11 +50,6 @@ public class SettingsActivity extends PreferenceActivity {
         super.onCreate(savedInstanceState);
 
         preferences = PreferenceManager.getDefaultSharedPreferences(this);
-        /*
-        if(!BuildConfig.DEBUG) {
-            Crashlytics.start(this);
-        }
-        */
     }
 
     @Override

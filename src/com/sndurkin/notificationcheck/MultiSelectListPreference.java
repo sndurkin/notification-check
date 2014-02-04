@@ -56,7 +56,7 @@ public class MultiSelectListPreference extends ListPreference {
     }
 
     public static List<Integer> getValuesFromString(String valuesStr) {
-        if(valuesStr.isEmpty()) {
+        if(valuesStr.length() == 0) {
             return new ArrayList<Integer>();
         }
         String[] values = valuesStr.split(SEPARATOR_REGEX);
