@@ -92,17 +92,17 @@ public class ScreenOnReceiver extends BroadcastReceiver {
                 // the user probably isn't aware of it because the ringer
                 // isn't on, so we defer vibration to the next time
                 // the screen is turned on (unless the call is answered).
-                phoneCallListener.addObserver(new PhoneCallListener.Observer() {
+                phoneCallListener.setObserver(new PhoneCallListener.Observer() {
                     @Override
                     public void onCallMissed() {
                         missedPhoneCall = true;
-                        phoneCallListener.removeObserver(this);
+                        phoneCallListener.setObserver(null);
                     }
 
                     @Override
                     public void onCallAnswered() {
                         requestToClearNotifications(prefNotificationType);
-                        phoneCallListener.removeObserver(this);
+                        phoneCallListener.setObserver(null);
                     }
                 });
                 return;

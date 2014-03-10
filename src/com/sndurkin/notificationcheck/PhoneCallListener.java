@@ -13,7 +13,7 @@ import java.util.List;
 public class PhoneCallListener extends PhoneStateListener {
 
     private boolean isPhoneRinging = false;
-    private List<Observer> observers = new ArrayList<Observer>();
+    private Observer observer;
 
     private static PhoneCallListener instance = new PhoneCallListener();
 
@@ -36,7 +36,7 @@ public class PhoneCallListener extends PhoneStateListener {
                 break;
             case TelephonyManager.CALL_STATE_OFFHOOK:
                 if(isPhoneRinging) {
-                    for(Observer observer : observers) {
+                    if(observer != null) {
                         observer.onCallAnswered();
                     }
                 }
@@ -45,7 +45,7 @@ public class PhoneCallListener extends PhoneStateListener {
                 break;
             case TelephonyManager.CALL_STATE_IDLE:
                 if(isPhoneRinging) {
-                    for(Observer observer : observers) {
+                    if(observer != null) {
                         observer.onCallMissed();
                     }
                 }
@@ -59,12 +59,8 @@ public class PhoneCallListener extends PhoneStateListener {
         return isPhoneRinging;
     }
 
-    public void addObserver(Observer observer) {
-        observers.add(observer);
-    }
-
-    public void removeObserver(Observer observer) {
-        observers.remove(observer);
+    public void setObserver(Observer observer) {
+        this.observer = observer;
     }
 
     interface Observer {
